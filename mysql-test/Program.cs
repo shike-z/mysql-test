@@ -11,8 +11,10 @@ namespace mysql_test
         {
             while (true)
             {
-                Console.WriteLine("输入1测试 向主键为自增INT类型的表插入万条数据的总时长:");
-                Console.WriteLine("输入2测试 向主键为UUID类型的表插入万条数据的总时长:");
+                Console.WriteLine("输入1测试 TestUser1(primary key id,unique key uuid):");
+                Console.WriteLine("输入2测试 TestUser2(primary key uuid,,unique key id):");
+                Console.WriteLine("输入3测试 TestUser3(primary key id):");
+                Console.WriteLine("输入4测试 TestUser4(primary key uuid):");
 
                 string input = Console.ReadLine();
 
@@ -25,6 +27,10 @@ namespace mysql_test
                         TestUser2();
                         break;
                     case "3":
+                        TestUser3();
+                        break;
+                    case "4":
+                        TestUser4();
                         break;
                     default:
                         return;
@@ -42,7 +48,7 @@ namespace mysql_test
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                for (int i = 0; i < 10000; i++)
+                for (int i = 0; i < 100000; i++)
                 {
                     MySqlCommand command = connection.CreateCommand();
                     command.CommandText = "insert into t_user1(uuid,name,city) values (@uuid,@name,@city);";
@@ -71,11 +77,68 @@ namespace mysql_test
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                for (int i = 0; i < 10000; i++)
+                for (int i = 0; i < 100000; i++)
                 {
                     MySqlCommand command = connection.CreateCommand();
                     command.CommandText = "insert into t_user2(uuid,name,city) values (@uuid,@name,@city);";
                     command.Parameters.AddWithValue("@uuid", Guid.NewGuid());
+                    command.Parameters.AddWithValue("@name", "name" + i);
+                    command.Parameters.AddWithValue("@city", "beijing");
+                    command.ExecuteNonQuery();
+                }
+
+                stopwatch.Stop();
+                connection.Close();
+
+                Console.WriteLine("总运行时间:" + stopwatch.ElapsedMilliseconds);
+                Console.WriteLine("");
+            }
+        }
+
+        private static void TestUser3()
+        {
+            string connectionString = ConfigurationManager.ConnectionStrings["ConnectionString"].ToString();
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+
+                for (int i = 0; i < 100000; i++)
+                {
+                    MySqlCommand command = connection.CreateCommand();
+                    command.CommandText = "insert into t_user3(uuid,name,city) values (@uuid,@name,@city);";
+                    command.Parameters.AddWithValue("@uuid", Guid.NewGuid());
+                    command.Parameters.AddWithValue("@name", "name" + i);
+                    command.Parameters.AddWithValue("@city", "beijing");
+                    command.ExecuteNonQuery();
+                }
+
+                stopwatch.Stop();
+                connection.Close();
+
+                Console.WriteLine("总运行时间:" + stopwatch.ElapsedMilliseconds);
+                Console.WriteLine("");
+            }
+        }
+
+        private static void TestUser4()
+        {
+            string connectionString = ConfigurationManager.ConnectionStrings["ConnectionString"].ToString();
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+
+                for (int i = 0; i < 100000; i++)
+                {
+                    MySqlCommand command = connection.CreateCommand();
+                    command.CommandText = "insert into t_user4(uuid,id,name,city) values (@uuid,@id,@name,@city);";
+                    command.Parameters.AddWithValue("@uuid", Guid.NewGuid());
+                    command.Parameters.AddWithValue("@id", i);
                     command.Parameters.AddWithValue("@name", "name" + i);
                     command.Parameters.AddWithValue("@city", "beijing");
                     command.ExecuteNonQuery();
